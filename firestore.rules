@@ -1,0 +1,65 @@
+rules_version = '2';
+// Cardume · regras de segurança do Firestore
+// Cole este conteúdo em Firebase › Firestore Database › Regras › Publicar.
+// Para ter acesso de moderador, troque SEU_UID_AQUI pelo seu UID (Authentication › Usuários).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signed() { return request.auth != null; }
+    function isMe(uid) { return signed() && request.auth.uid == uid; }
+    function admin() { return signed() && request.auth.uid in ['SEU_UID_AQUI']; }
+    function mine() { return signed() && request.resource.data.uid == request.auth.uid; }
+    function wasMine() { return signed() && resource.data.uid == request.auth.uid; }
+
+    match /spots/{id} {
+      allow read: if signed();
+      allow create: if signed() && request.resource.data.name is string && request.resource.data.lat is number && request.resource.data.lon is number;
+      allow update, delete: if signed() && (resource.data.createdBy == request.auth.uid || admin());
+    }
+    match /posts/{id} {
+      allow read: if signed();
+      allow create: if mine() && request.resource.data.ts is number;
+      allow update: if wasMine();
+      allow delete: if wasMine() || admin();
+    }
+    match /comments/{id} {
+      allow read: if signed();
+      allow create: if mine() && request.resource.data.text is string && request.resource.data.text.size() <= 500;
+      allow delete: if wasMine() || admin();
+    }
+    match /likes/{id} {
+      allow read: if signed();
+      allow create: if mine();
+      allow delete: if wasMine();
+    }
+    match /follows/{id} {
+      allow read: if signed();
+      allow create: if signed() && request.resource.data.from == request.auth.uid;
+      allow delete: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+    }
+    match /profiles/{uid} {
+      allow read: if signed();
+      allow write: if isMe(uid);
+    }
+    match /presence/{uid} {
+      allow read: if signed();
+      allow write: if isMe(uid);
+    }
+    match /photos/{id} {
+      allow read: if signed();
+      allow create: if mine() && request.resource.data.data is string && request.resource.data.data.size() < 1000000;
+      allow delete: if wasMine() || admin();
+    }
+    match /idfb/{id} {
+      allow read: if signed();
+      allow create: if mine();
+    }
+    match /reports/{id} {
+      allow create: if signed() && request.resource.data.by == request.auth.uid;
+      allow read, delete: if admin();
+    }
+    // dados pessoais: estado, favoritos, sessões do diário e pontos privados
+    match /data/users/{uid}/{rest=**} {
+      allow read, write: if isMe(uid);
+    }
+  }
+}
