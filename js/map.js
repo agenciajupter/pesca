@@ -96,7 +96,7 @@ C.views.mapa = (force) => {
     <div class="coordbar num" id="coordbar"></div>`;
     const c = C.cur(), lat = keep ? keep[0] : c.lat, lon = keep ? keep[1] : c.lon;
     M = wantReal
-      ? C.makeRealMap($('#mapHost'), { lat, lon, zoom: 14, style: () => S.mapStyle, onUpdate: drawMarkers, onTap: (la, lo) => tapAt(la, lo), onError: (code) => { C.toast(code === 'needs_reauth' ? 'Reconecte o Mapbox em Configurações › Conectores do claude.ai.' : code === 'server_not_connected' || code === 'not_in_manifest' ? 'Mapbox não conectado. Usando a carta offline.' : 'Não foi possível carregar o mapa agora.', 'info'); if (S.mapbox !== 'ok') C.views.mapa(true); } })
+      ? C.makeRealMap($('#mapHost'), { lat, lon, zoom: 14, style: () => S.mapStyle, onUpdate: drawMarkers, onTap: (la, lo) => tapAt(la, lo), onError: (code) => { C.toast(code === 'needs_reauth' ? (window.CARDUME_HOSTED ? 'O Mapbox recusou o token. Confira o mapboxToken em js/config.js.' : 'Reconecte o Mapbox em Configurações › Conectores do claude.ai.') : code === 'server_not_connected' || code === 'not_in_manifest' ? 'Mapbox não conectado. Usando a carta offline.' : 'Não foi possível carregar o mapa agora.', 'info'); if (S.mapbox !== 'ok') C.views.mapa(true); } })
       : C.makeMap($('#mapHost'), { lat, lon, scale: 0.09, onUpdate: drawMarkers, onTap: (la, lo) => tapAt(la, lo) });
     $('#mapq').addEventListener('input', searchMap);
     $('#mapq').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const b = $('#mapRes button'); b && b.click(); } });
@@ -176,7 +176,7 @@ function searchMap() {
 function mapRealInfo() {
   C.sheet('Mapa real com satélite', `<div class="pad sm" style="line-height:1.6">
     <p style="margin-top:0">O mapa de ruas, a imagem de satélite e a busca de endereços vêm do <b>Mapbox</b>, o mesmo provedor de mapas usado por apps como Strava e Instagram, com precisão de nível de rua.</p>
-    <p>Para ativar, conecte o <b>Mapbox</b> na sua conta: <b>claude.ai › Configurações › Conectores › Mapbox</b> (é preciso uma conta gratuita do Mapbox). Depois, volte aqui e toque em "Tentar de novo".</p>
+    ${window.CARDUME_HOSTED ? '<p>Para ativar, coloque o token público do Mapbox (começa com <b>pk.</b>) no arquivo <b>js/config.js</b>, em <b>mapboxToken</b>. Depois, recarregue o app e toque em "Tentar de novo".</p>' : '<p>Para ativar, conecte o <b>Mapbox</b> na sua conta: <b>claude.ai › Configurações › Conectores › Mapbox</b> (é preciso uma conta gratuita do Mapbox). Depois, volte aqui e toque em "Tentar de novo".</p>'}
     <p class="muted">Enquanto isso, a carta offline continua funcionando, com a costa do IBGE e as coordenadas exatas do toque.</p>
     <button class="btn block" id="mbxRetry">${ic('globe')}Tentar de novo</button></div>`, (b) => {
     $('#mbxRetry', b).onclick = async () => { S.mapbox = 'checking'; await C.mbxCheck(); C.closeSheet(); C.toast(S.mapbox === 'ok' ? 'Mapa real ativado' : 'Mapbox ainda não está conectado', S.mapbox === 'ok' ? 'globe' : 'info'); C.views.mapa(true); };
