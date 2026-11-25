@@ -7,6 +7,6 @@ window.CARDUME_CONFIG = {
     messagingSenderId: "984232269528",
     appId: "1:984232269528:web:b2f41d3282a712b42a29ad"
   },
-  mapboxToken: "pk.COLE_AQUI",
+  mapboxToken: "pk.eyJ1IjoiYWdlbmNpYWp1cHRlciIsImEiOiJjbXd2ZHhxNGMwOGVqMnpvbzhxOGc5bHRuIn0.jIa5HqMYnrFApg-qNnHpCg",
   ownerUid: ""
 };
